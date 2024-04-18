@@ -1,0 +1,28 @@
+注意
+切记给这个DNS解锁服务器加上iptable的限制，仅允许自己的代理服务器的IP进行53端口的TCP/UDP连接。不然给扫出来就白白便宜别人了
+# 清除现有的 iptables 规则
+iptables -F
+iptables -X
+
+# 允许本地回环连接
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# 允许代理服务器的 IP 连接到 DNS 解锁服务器的 53 端口（TCP）
+iptables -A INPUT -s <代理服务器IP> -p tcp --dport 53 -j ACCEPT
+
+# 允许代理服务器的 IP 连接到 DNS 解锁服务器的 53 端口（UDP）
+iptables -A INPUT -s <代理服务器IP> -p udp --dport 53 -j ACCEPT
+
+# 阻止其他所有连接到 DNS 解锁服务器的 53 端口（TCP/UDP）
+iptables -A INPUT -p tcp --dport 53 -j DROP
+iptables -A INPUT -p udp --dport 53 -j DROP
+
+# 允许已建立的连接和相关的通行
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# 允许其他出站连接
+iptables -A OUTPUT -j ACCEPT
+
+# 默认阻止所有入站连接
+iptables -P INPUT DROP
